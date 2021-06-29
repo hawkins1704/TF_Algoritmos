@@ -4,4 +4,3 @@
 set FLASK_APP=tfapp.py
 python -m flask run
 ```
-

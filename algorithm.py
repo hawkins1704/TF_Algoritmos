@@ -39,6 +39,59 @@ def peru1():
     responsePath = []
 
 
+
+    def distancia(cp1,cp2):
+        x1, y1 = float(cp1['LATITUD']), float(cp1['LONGITUD'])
+        x2, y2 = float(cp2['LATITUD']), float(cp2['LONGITUD'])
+        return round(math.sqrt((x1 - x2)**2 + (y1 - y2)**2),4)
+
+    #ALGORITMO TSP
+
+    #Calculando ruta menor mediante Backtracking
+
+    def tsp(graph,distrito):
+        costos = []
+        recorridos=[]
+        n = len(distrito)
+        recorrido=[]
+        visited = [False for i in range(n)]
+        visited[0] = True
+        recorrido.append(graph[0][0])
+        HamCycle(graph,visited,0,n,1,0,recorrido,costos,recorridos)
+        if (len(costos)!=0):
+            minimo=min(costos)
+            #print(f"minimo: {minimo}")
+            ind=costos.index(minimo)
+            for i,recorrido in enumerate(recorridos):
+            if i==ind:
+                #print(f"recorrido: {recorrido}")
+                return recorrido
+        else:
+            return recorrido
+
+
+    def HamCycle(graph, visited, currPos, n, count, cost,recorrido,costos,recorridos):
+            if (count == n and graph[currPos][0][0]):
+                costos.append(cost + graph[currPos][0][0])
+                #se crea una copia porque la lista "recorrido" constantemente
+                    #está agregando y quitando valores
+                prueba=recorrido.copy()
+                #prueba.append(graph[currPos][0])
+                recorridos.append(prueba)
+                return
+
+
+            for i in range(n):
+                if (visited[i] == False and graph[currPos][i][0]):		
+                visited[i] = True
+                recorrido.append(graph[currPos][i])
+                HamCycle(graph, visited, i, n, count + 1,
+                            cost + graph[currPos][i][0],recorrido,costos,recorridos)
+                recorrido.pop()
+                visited[i] = False
+
+
+
     #Almacenando departamentos
     nomDepartamentos = data['DEPARTAMENTO'].unique()
     departamentos = dict()
@@ -47,7 +100,13 @@ def peru1():
         #print(nom, len(provincias[nom]))
     #print(departamentos)
 
-    #Definiendo matriz de calculo 
+
+
+
+
+
+
+    #Definiendo matriz de calculo
 
     def matrizCalculo(distrito):
         Matriz=[[] for _ in range(len(distrito))]
@@ -96,7 +155,7 @@ def peru1():
             recorridoOficial.append({
                 "cp":cp[1],
                 "lat":departamentos['LIMA'][departamentos['LIMA']['CENTRO POBLADO']==cp[1]]['LATITUD'].values[0],
-                "lon":departamentos['LIMA'][departamentos['LIMA']['CENTRO POBLADO']==cp[1]]['LONGITUD'].values[0]
+                "lon":departamentos['LIMA'][departamentos['LIMA']['CENTRO POBLADO']==cp[1]]['LONGITUD'].values[0]0
             })
 
         return recorridoOficial

@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import math
 
 url = "../data/poblaciones.csv"
 
@@ -63,9 +64,9 @@ def peru1():
             #print(f"minimo: {minimo}")
             ind=costos.index(minimo)
             for i,recorrido in enumerate(recorridos):
-            if i==ind:
-                #print(f"recorrido: {recorrido}")
-                return recorrido
+                if i==ind:
+                    #print(f"recorrido: {recorrido}")
+                    return recorrido
         else:
             return recorrido
 
@@ -82,13 +83,13 @@ def peru1():
 
 
             for i in range(n):
-                if (visited[i] == False and graph[currPos][i][0]):		
-                visited[i] = True
-                recorrido.append(graph[currPos][i])
-                HamCycle(graph, visited, i, n, count + 1,
-                            cost + graph[currPos][i][0],recorrido,costos,recorridos)
-                recorrido.pop()
-                visited[i] = False
+                if (visited[i] == False and graph[currPos][i][0]):
+                    visited[i] = True
+                    recorrido.append(graph[currPos][i])
+                    HamCycle(graph, visited, i, n, count + 1,
+                                cost + graph[currPos][i][0],recorrido,costos,recorridos)
+                    recorrido.pop()
+                    visited[i] = False
 
 
 
@@ -99,12 +100,6 @@ def peru1():
         departamentos[nom] = data[data['DEPARTAMENTO'] == nom]
         #print(nom, len(provincias[nom]))
     #print(departamentos)
-
-
-
-
-
-
 
     #Definiendo matriz de calculo
 
@@ -135,53 +130,91 @@ def peru1():
         recorridoFinal=tsp(matrizGenerada, distrito)
         return recorridoFinal
 
-    #Almacenando los distritos de X provincia
+   #Almacenando los distritos de X provincia
     def recorridoDistrito(provincia,provincias):
+
+        recorridoTotal=[]
         nomDistritos = provincias[provincia]['DISTRITO'].unique()
         #print(f'Nombre de distritos de la provincia {provincia}: {nomDistritos}')
         distritos = dict()
         resultadosRecorridos=[]
         for nom in nomDistritos:
             distritos[nom] = provincias[provincia][provincias[provincia]['DISTRITO'] == nom]
-            
+
         for distrito in distritos:
-            print(Nexo(distritos[distrito]))
+            #print(f"Nexo: {Nexo(distritos[distrito])}")
+            recorridoTotal.extend(Nexo(distritos[distrito]))
+
+        return recorridoTotal
 
 
-    def obtencionLatLong(recorrido,departamentos):
-        nomCP = departamentos['LIMA']['CENTRO POBLADO'].unique()
-        recorridoOficial=[]
-        for cp in recorrido:
-            recorridoOficial.append({
-                "cp":cp[1],
-                "lat":departamentos['LIMA'][departamentos['LIMA']['CENTRO POBLADO']==cp[1]]['LATITUD'].values[0],
-                "lon":departamentos['LIMA'][departamentos['LIMA']['CENTRO POBLADO']==cp[1]]['LONGITUD'].values[0]0
-            })
-
-        return recorridoOficial
-
-
-    #prueba-----------------------
-    recorrido=[(0, 'ILLAPASCA'), (0.0176, 'LANCA'), (0.0156, 'TULLPAYOC'), (0.0564, 'TISCOCOCHA'), (0.0151, 'PARIONA'), (0.0107, 'PUCACHUCLLA'), (0.0329, 'MISME'), (0.0078, 'ILLAPASCA')]
-    responsePath=obtencionLatLong(recorrido,departamentos)
-    print(f"Response path: {responsePath}   ")
-    #-----------------------------
-
-
-    #Almacenando las provincias de X departamento
+    #Almacenando las provincias de X departamento 
     def recorridoProvincia(departamento,departamentos):
+
+        recorridoTotal=[]
+
+
         nomProvincias = departamentos[departamento]['PROVINCIA'].unique()
+
+
         provincias = dict()
         for nom in nomProvincias:
             provincias[nom] = departamentos[departamento][departamentos[departamento]['PROVINCIA'] == nom]
         for provincia in provincias:
-            recorridoDistrito(provincia,provincias)
+            recorridoTotal.extend(recorridoDistrito(provincia,provincias))
 
+        return recorridoTotal
+
+    def pruebaDepa(departamento,departamentos):
+
+        recorridoTotal=[]
+        nomProvincias = departamentos[departamento]['PROVINCIA'].unique()
+
+        provincias = dict()
+        for nom in nomProvincias:
+            provincias[nom] = departamentos[departamento][departamentos[departamento]['PROVINCIA'] == nom]
+        for provincia in provincias:
+            recorridoTotal.extend(recorridoDistrito(provincia,provincias))
+
+        return recorridoTotal
 
     def recorridoMaestro():
+
+        recorridoTotal=[]
+
         for departamento in departamentos:
-            recorridoProvincia(departamento, departamentos)
+           recorridoTotal.extend(recorridoProvincia(departamento, departamentos))
+        return recorridoTotal
 
 
+    def obtencionLatLong(recorrido,departamentos,depa):
+        nomCP = departamentos[depa]['CENTRO POBLADO'].unique()
+        recorridoOficial=[]
+        for cp in recorrido:
+            recorridoOficial.append({
+                "cp":cp[1],
+                "lat":departamentos[depa][departamentos[depa]['CENTRO POBLADO']==cp[1]]['LATITUD'].values[0],
+                "lon":departamentos[depa][departamentos[depa]['CENTRO POBLADO']==cp[1]]['LONGITUD'].values[0]
+            })
+
+        return recorridoOficial
+
+    #prueba---------------------------------------------
+    #nomProvincias = departamentos['LIMA']['PROVINCIA'].unique()
+    #provincias = dict()
+    #for nom in nomProvincias:
+    #    provincias[nom] = departamentos['LIMA'][departamentos['LIMA']['PROVINCIA'] == nom]
+    #print(provincias)
+
+    #---------------------------------------------------
+
+    #recorrido2=recorridoDistrito('YAUYOS',provincias)
+    #recorridoFinal=obtencionLatLong(recorrido2)
+    recorridoTotal=pruebaDepa('PASCO',departamentos)
+    #recorridoTotal=recorridoMaestro()
+    responsePath=obtencionLatLong(recorridoTotal,departamentos,'PASCO')
+    print(f"Response path: {responsePath}   ")
+
+    #-----------------------------
     return json.dumps(responsePath)
 
